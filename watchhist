@@ -39,6 +39,7 @@ if [ $# -gt 0 ]; then
   case $1 in
   -h | --help)
     display_help
+    exit 0
     ;;
   -l | --last)
     if [ -z "$2" ]; then
