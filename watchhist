@@ -92,4 +92,7 @@ if [ $# -gt 0 ]; then
     exit 1
     ;;
   esac
+else
+  display_help
+  exit 0
 fi
