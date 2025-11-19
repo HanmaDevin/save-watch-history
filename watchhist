@@ -8,9 +8,10 @@ display_help() {
 Watch History Saver
 Usage:  watchhist [FLAG]
 
-Flag: -h/--help   Show this help message.
-      -l/--last   Search for last Episode of a Show.
-      -a/--all    Show all Episodes watched of a show
+Flag: -h/--help         Show this help message.
+      -s/--save         Save current watching streak.
+      -l/--last <SHOW>  Search for last Episode of a Show.
+      -a/--all  <SHOW>  Show all Episodes watched of a show.
 FIN
 }
 
@@ -35,11 +36,39 @@ show_all() {
   echo "$all"
 }
 
+run() {
+  cd "$REPO" || echo "Failed to 'cd' into $REPO"
+  git --exec-path="$REPO" pull >/dev/null
+  echo "Last Episode: $(tail -n 1 "$WATCHLIST")"
+
+  while true; do
+    local watching
+    watching=$(playerctl metadata xesam:title 2>/dev/null) # Get current title
+    if [[ -n "$watching" ]]; then
+      if ! grep -Fxq "$watching" "$WATCHLIST"; then # Check if not already in the list
+        echo "Saved: $watching"
+        echo "$watching" >>"$WATCHLIST"
+      else
+        echo "Already in watchlist: $watching"
+      fi
+    fi
+
+    git --exec-path="$REPO" add "$WATCHLIST" >/dev/null
+    git --exec-path="$REPO" commit -m "added $watching to watchlist" >/dev/null
+    git --exec-path="$REPO" push >/dev/null
+
+    sleep 300 # Check every 5 minutes
+  done
+}
+
 if [ $# -gt 0 ]; then
   case $1 in
   -h | --help)
     display_help
     exit 0
+    ;;
+  -s | --save)
+    run
     ;;
   -l | --last)
     if [ -z "$2" ]; then
@@ -64,25 +93,3 @@ if [ $# -gt 0 ]; then
     ;;
   esac
 fi
-
-cd "$REPO" || echo "Failed to 'cd' into $REPO"
-git --exec-path="$REPO" pull >/dev/null
-echo "Last Episode: $(tail -n 1 "$WATCHLIST")"
-
-while true; do
-  watching=$(playerctl metadata xesam:title 2>/dev/null) # Get current title
-  if [[ -n "$watching" ]]; then
-    if ! grep -Fxq "$watching" "$WATCHLIST"; then # Check if not already in the list
-      echo "Saved: $watching"
-      echo "$watching" >>"$WATCHLIST"
-    else
-      echo "Already in watchlist: $watching"
-    fi
-  fi
-
-  git --exec-path="$REPO" add "$WATCHLIST" >/dev/null
-  git --exec-path="$REPO" commit -m "added $watching to watchlist" >/dev/null
-  git --exec-path="$REPO" push >/dev/null
-
-  sleep 300 # Check every 5 minutes
-done
