@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+REPO="$HOME/save-watch-history"
+WATCHLIST="$REPO/watch-history.txt"
+
+display_help() {
+  cat <<-FIN
+    Watch History Saver
+    Usage:  watchhist [FLAG]
+
+    Flag: -h/--help   Show this help message.
+          -q/--query  Search for last Episode of a Show.
+          -a/--all    Show all Episodes watched of a show
+FIN
+}
+
+show_list() {
+  echo "Last watched Episode of $1: $(grep -i "$1" "$WATCHLIST" | tail -1)"
+}
+
+show_all() {
+  local all
+  all=$(grep -i "$1" "$WATCHLIST")
+  printf "Watched Episodes of %s:\n%s" "$1" "$all"
+}
+
+if [ $# -gt 0 ]; then
+  case $1 in
+  -h | --help)
+    display_help
+    ;;
+  -q | --query)
+    if [ -z "$2" ]; then
+      echo "Please provide a show name." >/dev/stderr
+      exit 1
+    fi
+    show_list "$2"
+    ;;
+  -a | --all)
+    if [ -z "$2" ]; then
+      echo "Please provide a show name." >/dev/stderr
+      exit 1
+    fi
+    show_all "$2"
+    ;;
+  *)
+    echo "Do not know this command '$1'" >/dev/stderr
+    exit 1
+    ;;
+  esac
+fi
+
+cd "$REPO" || echo "Failed to 'cd' into $REPO"
+git --exec-path="$REPO" pull >/dev/null
+echo "Last Episode: $(tail -n 1 "$WATCHLIST")"
+
+while true; do
+  watching=$(playerctl metadata xesam:title 2>/dev/null) # Get current title
+  if [[ -n "$watching" ]]; then
+    if ! grep -Fxq "$watching" "$WATCHLIST"; then # Check if not already in the list
+      echo "Saved: $watching"
+      echo "$watching" >>"$WATCHLIST"
+    else
+      echo "Already in watchlist: $watching"
+    fi
+  fi
+
+  git --exec-path="$REPO" add "$WATCHLIST" >/dev/null
+  git --exec-path="$REPO" commit -m "added $watching to watchlist" >/dev/null
+  git --exec-path="$REPO" push >/dev/null
+
+  sleep 300 # Check every 5 minutes
+done
