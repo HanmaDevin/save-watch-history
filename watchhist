@@ -22,7 +22,7 @@ show_last() {
     echo "Sorry you haven't watched anything like that :("
     exit 1
   fi
-  echo "Last watched Episode of $1: $last"
+  echo "Last watched Episode: $last"
 }
 
 show_all() {
@@ -32,7 +32,7 @@ show_all() {
     echo "Sorry you haven't watched anything like that :("
     exit 1
   fi
-  echo "Watched Episodes of $1:"
+  echo "Watched Episodes:"
   echo "$all"
 }
 
