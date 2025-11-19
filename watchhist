@@ -9,19 +9,30 @@ display_help() {
     Usage:  watchhist [FLAG]
 
     Flag: -h/--help   Show this help message.
-          -q/--query  Search for last Episode of a Show.
+          -l/--last   Search for last Episode of a Show.
           -a/--all    Show all Episodes watched of a show
 FIN
 }
 
-show_list() {
-  echo "Last watched Episode of $1: $(grep -i "$1" "$WATCHLIST" | tail -1)"
+show_last() {
+  local last
+  last=$(grep -i "$1" "$WATCHLIST" | tail -n 1)
+  if [ -z "$last" ]; then
+    echo "Sorry you haven't watched anything like that :("
+    exit 1
+  fi
+  echo "Last watched Episode of $1: $last"
 }
 
 show_all() {
   local all
   all=$(grep -i "$1" "$WATCHLIST")
-  printf "Watched Episodes of %s:\n%s" "$1" "$all"
+  if [ -z "$all" ]; then
+    echo "Sorry you haven't watched anything like that :("
+    exit 1
+  fi
+  echo "Watched Episodes of $1:"
+  echo "$all"
 }
 
 if [ $# -gt 0 ]; then
@@ -29,12 +40,13 @@ if [ $# -gt 0 ]; then
   -h | --help)
     display_help
     ;;
-  -q | --query)
+  -l | --last)
     if [ -z "$2" ]; then
       echo "Please provide a show name." >/dev/stderr
       exit 1
     fi
-    show_list "$2"
+    show_last "$2"
+    exit 0
     ;;
   -a | --all)
     if [ -z "$2" ]; then
@@ -42,6 +54,7 @@ if [ $# -gt 0 ]; then
       exit 1
     fi
     show_all "$2"
+    exit 0
     ;;
   *)
     echo "Do not know this command '$1'" >/dev/stderr
