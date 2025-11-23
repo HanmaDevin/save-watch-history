@@ -10,19 +10,19 @@ Usage:  watchhist [FLAG]
 
 Flag: -h/--help         Show this help message.
       -s/--save         Save current watching streak.
-      -l/--last <SHOW>  Search for last Episode of a Show.
-      -a/--all  <SHOW>  Show all Episodes watched of a show.
+      -l/--last <name>  Search for last Episode of a series.
+      -a/--all  <name>  Show all Episodes watched of a series.
 FIN
 }
 
-show_last() {
+show_last_episode() {
   local last
   last=$(grep -i "$1" "$WATCHLIST" | tail -n 1)
   if [ -z "$last" ]; then
     echo "Sorry you haven't watched anything like that :("
     exit 1
   fi
-  echo "Last watched Episode: $last"
+  echo "Last Episode: $last"
 }
 
 show_all() {
@@ -36,10 +36,13 @@ show_all() {
   echo "$all"
 }
 
+show_last() {
+  echo "Last watched Episode: $(tail -n 1 "$WATCHLIST")"
+}
+
 run() {
   cd "$REPO" || echo "Failed to 'cd' into $REPO"
   git --exec-path="$REPO" pull >/dev/null
-  echo "Last Episode: $(tail -n 1 "$WATCHLIST")"
 
   while true; do
     local watching
@@ -72,10 +75,10 @@ if [ $# -gt 0 ]; then
     ;;
   -l | --last)
     if [ -z "$2" ]; then
-      echo "Please provide a show name." >/dev/stderr
-      exit 1
+      show_last
+      exit 0
     fi
-    show_last "$2"
+    show_last_episode "$2"
     exit 0
     ;;
   -a | --all)
