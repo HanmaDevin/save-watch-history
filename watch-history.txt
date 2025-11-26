@@ -111,3 +111,4 @@ Fullmetal Alchemist Brotherhood Episode 46
 Fullmetal Alchemist Brotherhood Episode 47
 Fullmetal Alchemist Brotherhood Episode 48
 16 GREAT LINUX FOSS APPS & UTILITIES I use, or plan to ! - YouTube
+Crash-Course in using `getopts` to parse Command Line Arguments in Bash! - YouTube
