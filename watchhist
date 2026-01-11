@@ -10,6 +10,7 @@ Usage:  watchhist [FLAG]
 
 Flag: -h/--help         Show this help message.
       -s/--save         Save current watching streak.
+      -u/--update       Update history.  
       -l/--last <name>  Search for last Episode of a series.
       -a/--all  <name>  Show all Episodes watched of a series.
 FIN
@@ -88,6 +89,9 @@ if [ $# -gt 0 ]; then
     fi
     show_all "$2"
     exit 0
+    ;;
+  -u | --update)
+    git --exec-path="$REPO" pull >/dev/null
     ;;
   *)
     echo "Do not know this command '$1'" >/dev/stderr
