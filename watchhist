@@ -10,9 +10,9 @@ Usage:  watchhist [FLAG]
 
 Flag: -h/--help         Show this help message.
       -s/--save         Save current watching streak.
-      -u/--update       Update history.  
+      -u/--update       Update history.
       -l/--last <name>  Search for last Episode of a series.
-      -a/--all  <name>  Show all Episodes watched of a series.
+      -a/--all          Show all unique Series watched.
 FIN
 }
 
@@ -27,14 +27,8 @@ show_last_episode() {
 }
 
 show_all() {
-  local all
-  all=$(grep -i "$1" "$WATCHLIST")
-  if [ -z "$all" ]; then
-    echo "Sorry you haven't watched anything like that :("
-    exit 1
-  fi
-  echo "Watched Episodes:"
-  echo "$all"
+  echo "All Watched Series:"
+  sed -E 's/ (Episode|Part [0-9]+|S[0-9]{2}E[0-9]{2}).*//; s/\[Reaktor\](Ao no Exorcist).*/\1/; s/(The Boondocks).*/\1/' "$WATCHLIST" | sort -u
 }
 
 show_last() {
@@ -83,11 +77,7 @@ if [ $# -gt 0 ]; then
     exit 0
     ;;
   -a | --all)
-    if [ -z "$2" ]; then
-      echo "Please provide a show name." >/dev/stderr
-      exit 1
-    fi
-    show_all "$2"
+    show_all
     exit 0
     ;;
   -u | --update)
