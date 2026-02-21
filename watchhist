@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-REPO="$HOME/save-watch-history"
-WATCHLIST="$REPO/watch-history.txt"
+REPO="${HOME}/save-watch-history"
+WATCHLIST="${REPO}/watch-history.txt"
 
 display_help() {
   cat <<-FIN
@@ -18,42 +18,41 @@ FIN
 
 show_last_episode() {
   local last
-  last=$(grep -i "$1" "$WATCHLIST" | tail -n 1)
-  if [ -z "$last" ]; then
+  last=$(grep -i "$1" "${WATCHLIST}" | tail -n 1)
+  if [ -z "${last}" ]; then
     echo "Sorry you haven't watched anything like that :("
     exit 1
   fi
-  echo "Last Episode: $last"
+  echo "${last}"
 }
 
 show_all() {
-  echo "All Watched Series:"
-  sed -E 's/ (Episode|Part [0-9]+|S[0-9]{2}E[0-9]{2}).*//; s/\[Reaktor\](Ao no Exorcist).*/\1/; s/(The Boondocks).*/\1/' "$WATCHLIST" | sort -u
+  sed -E 's/ (Episode|Part [0-9]+|S[0-9]{2}E[0-9]{2}).*//; s/\[Reaktor\](Ao no Exorcist).*/\1/; s/(The Boondocks).*/\1/' "${WATCHLIST}" | sort -u
 }
 
 show_last() {
-  echo "Last watched Episode: $(tail -n 1 "$WATCHLIST")"
+  echo "$(tail -n 1 "${WATCHLIST}")"
 }
 
 run() {
-  cd "$REPO" || echo "Failed to 'cd' into $REPO"
-  git --exec-path="$REPO" pull >/dev/null
+  cd "${REPO}" || echo "Failed to 'cd' into ${REPO}"
+  git --exec-path="${REPO}" pull >/dev/null
 
   while true; do
     local watching
     watching=$(playerctl metadata xesam:title 2>/dev/null) # Get current title
-    if [[ -n "$watching" ]]; then
-      if ! grep -Fxq "$watching" "$WATCHLIST"; then # Check if not already in the list
-        echo "Saved: $watching"
-        echo "$watching" >>"$WATCHLIST"
+    if [[ -n "${watching}" ]]; then
+      if ! grep -Fxq "${watching}" "${WATCHLIST}"; then # Check if not already in the list
+        echo "Saved: ${watching}"
+        echo "${watching}" >>"${WATCHLIST}"
       else
-        echo "Already in watchlist: $watching"
+        echo "Already in watchlist: ${watching}"
       fi
     fi
 
-    git --exec-path="$REPO" add "$WATCHLIST" >/dev/null
-    git --exec-path="$REPO" commit -m "added $watching to watchlist" >/dev/null
-    git --exec-path="$REPO" push >/dev/null
+    git --exec-path="${REPO}" add "${WATCHLIST}" >/dev/null
+    git --exec-path="${REPO}" commit -m "added ${watching} to watchlist" >/dev/null
+    git --exec-path="${REPO}" push >/dev/null
 
     sleep 300 # Check every 5 minutes
   done
@@ -61,34 +60,34 @@ run() {
 
 if [ $# -gt 0 ]; then
   case $1 in
-  -h | --help)
-    display_help
-    exit 0
-    ;;
-  -s | --save)
-    run
-    ;;
-  -l | --last)
-    if [ -z "$2" ]; then
-      show_last
+    -h | --help)
+      display_help
       exit 0
-    fi
-    show_last_episode "$2"
-    exit 0
-    ;;
-  -a | --all)
-    show_all
-    exit 0
-    ;;
-  -u | --update)
-    cd "$REPO" || echo "Failed to 'cd' into $REPO"
-    git --exec-path="$REPO" pull >/dev/null
-    ;;
-  *)
-    echo "Do not know this command '$1'" >/dev/stderr
-    display_help
-    exit 1
-    ;;
+      ;;
+    -s | --save)
+      run
+      ;;
+    -l | --last)
+      if [ -z "$2" ]; then
+        show_last
+        exit 0
+      fi
+      show_last_episode "$2"
+      exit 0
+      ;;
+    -a | --all)
+      show_all
+      exit 0
+      ;;
+    -u | --update)
+      cd "${REPO}" || echo "Failed to 'cd' into ${REPO}"
+      git --exec-path="${REPO}" pull >/dev/null
+      ;;
+    *)
+      echo "Do not know this command '$1'" >/dev/stderr
+      display_help
+      exit 1
+      ;;
   esac
 else
   display_help
