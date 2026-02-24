@@ -15,6 +15,7 @@ def get-history [] {
     if not ($WATCHLIST | path exists) { error make {
         msg: $"Could not find ($WATCHLIST)"
     } }
+    # parse lines to a table with header "Series" "Episode"
     open $WATCHLIST | lines | parse -r '(?P<Series>.*?) (?P<Details>(?:Episode|Part|S\d+E\d+).*)' | upsert Series { |it| 
         $it.Series 
         | str replace -r '\[Reaktor\](Ao no Exorcist).*' '$1'
@@ -40,12 +41,12 @@ def "main save" [] {
     }
 }
 # Show the last episode of a specific series (or just the last overall)
-def "main last" [name?: string] {
-    let history = (open $WATCHLIST | lines | wrap Title)
-    if ($name | is-empty) { return ($history | last 1) }
-    let matches = ($history | where {|it| $it.Title =~ ($name | str downcase)})
-    if ($matches | is-empty) { print $"Sorry, you haven't watched anything like ($name) :\(" } else {
-        $matches | last 1
+def "main last" [pattern?: string] {
+    let history = get-history
+    if ($pattern | is-empty) { return ($history | last 1) }
+    let result = ($history | where {|it| $it.Series =~ $"($pattern)"})
+    if ($result | is-empty) { print $"Sorry, no matches found for ($pattern) :\(" } else {
+        $result | last 1
     }
 }
 def "main all" [] {
@@ -55,7 +56,7 @@ def "main all" [] {
         | str replace -r ' (Episode|Part [0-9]+|S[0-9]{2}E[0-9]{2}).*' ''
         | str replace -r '\[Reaktor\](Ao no Exorcist).*' '$1'
         | str replace -r '(The Boondocks).*' '$1'
-    } | uniq | sort | wrap "Series Name"
+    } | uniq | sort | wrap "Series Name" # wrap into table with column "Series Name"
 }
 def "main update" [] {
     sync-repo
